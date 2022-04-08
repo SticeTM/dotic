@@ -1,6 +1,8 @@
-var things = require('./quoteHandler.ts')
+import {quoteHandler} from './quoteHandler.ts'
 
-things.addQuote('103','andreas','hallo ich bin ein baum')
 
-var tmp = things.getAuthorQuotes('102','jonas')
+let quoter = new quoteHandler()
+quoter.addQuote('103','andreas','hallo ich bin ein baum')
+
+var tmp = quoter.getAuthorQuotes('102','christian')
 console.log(tmp)
