@@ -1,34 +1,65 @@
-export class quoteHandler{
-	json:any = {
-			'servers':[
-				{
-					'serverId':'102',
-					'quotes':[
-						{'author':'christian', 'quote':'ich bin doof'},
-						{'author':'jonas', 'quote':'ich bin auch doof'}
-					]
-				}			
-			]
-		}
+import * as fs from 'fs'
+let quotes:any
 
-	
+
+export class quoteHandler{
+
+
+init = () =>{
+	return new Promise((accept,reject) => {
+		fs.readFile(
+		'./quotes.json',
+		(err,data) => {
+			if (err){
+				reject()
+				return console.log(err)
+			}else{
+				console.log('file opened')
+				quotes = JSON.parse(data.toString())
+				accept(quotes)
+			}
+		})
+	})
+}
+
+
+
 
 	serverIndex(serverId:string):number{
-		for (let i = 0; i < this.json.servers.length; i++){
-			if (this.json.servers[i].serverId == serverId){
+		for (let i = 0; i < quotes.servers.length; i++){
+			if (quotes.servers[i].serverId == serverId){
 				return i
 			}
 		}
 		return -1	
 	}
 
+
 	addQuote(serverId:string,author:string,quote:string):void{
 		let index:number = this.serverIndex(serverId)
 		if(index == -1){
-			this.json.servers.push({'serverId':serverId, 'quotes':[{'author':author, 'quote':quote}]})
+			quotes.servers.push({'serverId':serverId, 'quotes':[{'author':author, 'quote':quote}]})
 		}else{
-			this.json.servers[index].quotes.push({'author':author, 'quote':quote})
+			for(let i = 0; i < quotes.servers[index].quotes.length; i++){
+				if (JSON.stringify(quotes.servers[index].quotes[i]) == JSON.stringify({'author':author, 'quote':quote})) {
+					console.log('duplicate quote')
+					return
+				}
+			}
+
+			quotes.servers[index].quotes.push({'author':author, 'quote':quote})
 		}
+
+		fs.writeFile(
+			'./quotes.json', 
+			JSON.stringify(quotes), 
+			function(err){
+				if (err){
+					console.log(err)
+				}else{
+					console.log('file written')
+				}
+		})
 	}
 
 
@@ -37,7 +68,7 @@ export class quoteHandler{
 		if (index === -1){
 			return []
 		}
-		return this.json.servers[index].quotes	
+		return quotes.servers[index].quotes	
 	}
 
 
@@ -54,68 +85,9 @@ export class quoteHandler{
 		}
 		return serverQuotes
 	}
-}
-
-/*
-(function(){
-		var json = {
-			'servers':[
-				{
-					'serverId':'102',
-					'quotes':[
-						{'author':'christian', 'quote':'ich bin doof'},
-						{'author':'jonas', 'quote':'ich bin auch doof'}
-					]
-				}
-			]
-		}
-	function serverIndex(serverId){
-		for (let i = 0; i < json.servers.length; i++){
-			if (json.servers[i].serverId == serverId){
-				return i
-			}
-		}
-		return -1
-	}
-
-	function addQuote(serverId, author, quote){
-		let index = serverIndex(serverId)
-		if (index === -1){
-			json.servers.push({'serverId':serverId, 'quotes':[{'author':author, 'quote':quote}]})
-		}else{
-			json.servers[index].quotes.push({'author':author, 'quote':quote})
-		}
-	}
-
-
-	function getServerQuotes(serverId){
-		let index = serverIndex(serverId)
-		if (index === -1){
-			return []
-		}
-		return json.servers[index].quotes	
-	}
-
-
-	function getAuthorQuotes(serverId, author){
-		let serverQuotes = getServerQuotes(serverId)
-		if (serverQuotes.length == 0){
-			return []
-		}
-
-		for(let i = serverQuotes.length -1; i >= 0; i--){
-			if (serverQuotes[i].author != author){
-				serverQuotes.splice(i, 1)
-			}
-		}
-		return serverQuotes
-	}
-
-	module.exports.getAuthorQuotes = getAuthorQuotes
-	module.exports.getServerQuotes = getServerQuotes
-	module.exports.addQuote = addQuote
 
 	//TODO: get list from word
-}())
-
-*/
+	//TODO: get random quote
+	//TODO: get random from word
+	//TODO: get random from user
+}

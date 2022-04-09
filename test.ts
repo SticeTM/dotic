@@ -1,8 +1,13 @@
-import {quoteHandler} from './quoteHandler.ts'
+import {quoteHandler} from './quoteHandler'
 
 
 let quoter = new quoteHandler()
-quoter.addQuote('103','andreas','hallo ich bin ein baum')
 
-var tmp = quoter.getAuthorQuotes('102','christian')
-console.log(tmp)
+async function func () {
+	await quoter.init()
+
+	quoter.addQuote('103','hannah','elefant')
+}
+
+func()
+
