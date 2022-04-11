@@ -5,8 +5,10 @@ let quoter = new quoteHandler()
 async function func() {
   await quoter.init()
 
-  quoter.addQuote('103', 'hannah', 'elefant')
-  quoter.deleteQuote('103', 'hannah', 'elefant')
+  await quoter.addQuote('103', 'hannah', 'elefant')
+  await quoter.deleteQuote('103', 'hannah', 'elefant')
+
+  console.log("ended")
 }
 
 func()

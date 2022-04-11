@@ -4,25 +4,8 @@ let fileLocked: boolean = false
 
 export class quoteHandler {
 
-  writeFile(fileAsString: string) {
-    console.log('trying to write')
-    do {
-      setTimeout(() => {
-        if (!fileLocked) {
-          fileLocked = true
-          fs.writeFile('./quotes.json', (fileAsString), function(err) {
-            if (err) {
-              console.log(err)
-              fileLocked = false
-            } else {
-              console.log('file written')
-              fileLocked = false
-            }
-          })
-        }
-      }, 500)
-    }
-    while (fileLocked)
+  async writeFile(fileAsString: string) {
+		await fs.promises.writeFile('./quotes.json', fileAsString)
   }
 
   init() {
@@ -50,7 +33,7 @@ export class quoteHandler {
     return -1
   }
 
-  addQuote(serverId: string, author: string, quote: string): void {
+  async addQuote(serverId: string, author: string, quote: string) {
     if (file == undefined) {
       file = { "servers" : [] }
     }
@@ -72,7 +55,7 @@ export class quoteHandler {
 
       file.servers[index].quotes.push({'author' : author, 'quote' : quote})
     }
-    this.writeFile(JSON.stringify(file))
+    await this.writeFile(JSON.stringify(file))
     /*
 fs.writeFile('./quotes.json', JSON.stringify(file), function(err) {
 if (err) {
@@ -83,7 +66,7 @@ console.log('file written')
 })*/
   }
 
-  deleteQuote(serverId: string, author: string, quote: string) {
+  async deleteQuote(serverId: string, author: string, quote: string) {
     let index: number = this.serverIndex(serverId)
     if (index == -1) {
       console.log('no quotes from this server')
@@ -98,7 +81,7 @@ console.log('file written')
         console
             .log(JSON.stringify(file))
 
-                this.writeFile(JSON.stringify(file))
+                await this.writeFile(JSON.stringify(file))
         /*
 fs.writeFile('./quotes.json', JSON.stringify(file), function(err) {
 if (err) {
