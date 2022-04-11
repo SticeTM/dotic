@@ -1,3 +1,4 @@
 config.json
 *.js
 quotes.json
+node_modules/
