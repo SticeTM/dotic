@@ -10,7 +10,7 @@ export class quoteHandler {
       setTimeout(() => {
         if (!fileLocked) {
           fileLocked = true
-          fs.writeFile('./quotes.json', (fileAsString), function(err) {
+          fs.writeFile('../quotes.json', (fileAsString), function(err) {
             if (err) {
               console.log(err)
               fileLocked = false
@@ -27,7 +27,7 @@ export class quoteHandler {
 
   init() {
     return new Promise(
-        (accept, reject) => {fs.readFile('./quotes.json', (err, data) => {
+        (accept, reject) => {fs.readFile('../quotes.json', (err, data) => {
           if (err) {
             reject()
             return console.log(err)
