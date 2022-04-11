@@ -6,6 +6,7 @@ async function func() {
   await quoter.init()
 
   quoter.addQuote('103', 'hannah', 'elefant')
+  quoter.deleteQuote('103', 'hannah', 'elefant')
 }
 
 func()

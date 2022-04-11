@@ -1,7 +1,29 @@
 import * as fs from 'fs'
-let data: any
+let file: any
+let fileLocked: boolean = false
 
 export class quoteHandler {
+
+  writeFile(fileAsString: string) {
+    console.log('trying to write')
+    do {
+      setTimeout(() => {
+        if (!fileLocked) {
+          fileLocked = true
+          fs.writeFile('./quotes.json', (fileAsString), function(err) {
+            if (err) {
+              console.log(err)
+              fileLocked = false
+            } else {
+              console.log('file written')
+              fileLocked = false
+            }
+          })
+        }
+      }, 500)
+    }
+    while (fileLocked)
+  }
 
   init() {
     return new Promise(
@@ -11,15 +33,17 @@ export class quoteHandler {
             return console.log(err)
           } else {
             console.log('file opened')
-            data = JSON.parse(data.toString())
-            accept(data)
+            if (data.length == 0) {
+              file = { "servers" : [] }
+            }
+            else {file = JSON.parse(data.toString())} accept(data)
           }
         })})
   }
 
   serverIndex(serverId: string): number {
-    for (let i = 0; i < data.servers.length; i++) {
-      if (data.servers[i].serverId == serverId) {
+    for (let i = 0; i < file.servers.length; i++) {
+      if (file.servers[i].serverId == serverId) {
         return i
       }
     }
@@ -27,32 +51,36 @@ export class quoteHandler {
   }
 
   addQuote(serverId: string, author: string, quote: string): void {
+    if (file == undefined) {
+      file = { "servers" : [] }
+    }
     let index: number = this.serverIndex(serverId)
     if (index == -1) {
-      data.servers.push({
+      file.servers.push({
         'serverId' : serverId,
         'quotes' : [ {'author' : author, 'quote' : quote} ]
       })
     }
     else {
-      for (let i = 0; i < data.servers[index].quotes.length; i++) {
-        if (JSON.stringify(data.servers[index].quotes[i]) ==
+      for (let i = 0; i < file.servers[index].quotes.length; i++) {
+        if (JSON.stringify(file.servers[index].quotes[i]) ==
             JSON.stringify({'author' : author, 'quote' : quote})) {
           console.log('duplicate quote')
           return
         }
       }
 
-      data.servers[index].quotes.push({'author' : author, 'quote' : quote})
+      file.servers[index].quotes.push({'author' : author, 'quote' : quote})
     }
-
-    fs.writeFile('./quotes.json', JSON.stringify(data), function(err) {
-      if (err) {
-        console.log(err)
-      } else {
-        console.log('file written')
-      }
-    })
+    this.writeFile(JSON.stringify(file))
+    /*
+fs.writeFile('./quotes.json', JSON.stringify(file), function(err) {
+if (err) {
+console.log(err)
+} else {
+console.log('file written')
+}
+})*/
   }
 
   deleteQuote(serverId: string, author: string, quote: string) {
@@ -61,18 +89,24 @@ export class quoteHandler {
       console.log('no quotes from this server')
       return
     }
-    for (let i = data.servers[index].quotes.length - 1; i >= 0; i--) {
+    for (let i = file.servers[index].quotes.length - 1; i >= 0; i--) {
       if (JSON.stringify(
-              data.servers[index].quotes[i] ==
+              file.servers[index].quotes[i] ==
               JSON.stringify({'author' : author, 'quote' : quote}))) {
-        data.servers[index].quotes.splice(i, 1);
-        fs.writeFile('./quotes.json', JSON.stringify(data), function(err) {
-          if (err) {
-            console.log(err)
-          } else {
-            console.log('quote overridden')
-          }
-        })
+        console.log(JSON.stringify(file))
+        file.servers[index].quotes.splice(i, 1);
+        console
+            .log(JSON.stringify(file))
+
+                this.writeFile(JSON.stringify(file))
+        /*
+fs.writeFile('./quotes.json', JSON.stringify(file), function(err) {
+if (err) {
+console.log(err)
+} else {
+console.log('quote deleted')
+}
+})*/
       }
     }
   }
@@ -82,7 +116,7 @@ export class quoteHandler {
     if (index == -1) {
       return []
     }
-    return data.servers[index].quotes
+    return file.servers[index].quotes
   }
 
   getAuthorQuotes(serverId: string, author: string): any {
