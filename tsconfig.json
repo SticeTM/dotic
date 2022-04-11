@@ -1,6 +1,8 @@
 {
 	"compilerOptions": {
 		"outDir": "target",
-		"rootDir": "src"
+		"rootDir": "src",
+    "module": "esnext",
+    "target": "esnext"
 	}
 }

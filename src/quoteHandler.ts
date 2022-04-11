@@ -1,105 +1,75 @@
 import * as fs from 'fs'
-let file: any
-let fileLocked: boolean = false
+import {FileHandle} from 'fs/promises';
+let file: FileHandle = await fs.promises.open("./quotes.json", "r+")
+
+type Quote = {
+  author: string,
+  quote: string
+}
+
+type State = {
+  servers : Map<string, { "quotes": Quote[] }>
+}
+
+let state: State;
 
 export class quoteHandler {
 
   async writeFile(fileAsString: string) {
-		await fs.promises.writeFile('./quotes.json', fileAsString)
+    await file.writeFile(fileAsString)
   }
 
-  init() {
-    return new Promise(
-        (accept, reject) => {fs.readFile('./quotes.json', (err, data) => {
-          if (err) {
-            reject()
-            return console.log(err)
-          } else {
-            console.log('file opened')
-            if (data.length == 0) {
-              file = { "servers" : [] }
-            }
-            else {file = JSON.parse(data.toString())} accept(data)
-          }
-        })})
-  }
+  async init() {
+    let data = await file.readFile("utf8");
 
-  serverIndex(serverId: string): number {
-    for (let i = 0; i < file.servers.length; i++) {
-      if (file.servers[i].serverId == serverId) {
-        return i
-      }
+    console.log('file opened')
+    if (data.length == 0) {
+      state = { "servers" : new Map() }
     }
-    return -1
+    else {state = JSON.parse(data.toString())}
   }
 
   async addQuote(serverId: string, author: string, quote: string) {
-    if (file == undefined) {
-      file = { "servers" : [] }
+    if (state == undefined) {
+      state = { "servers" : new Map() }
     }
-    let index: number = this.serverIndex(serverId)
-    if (index == -1) {
-      file.servers.push({
-        'serverId' : serverId,
+    let submap: { "quotes": any[] } = state.servers.get(serverId)
+    if (submap == undefined) {
+      submap = {
         'quotes' : [ {'author' : author, 'quote' : quote} ]
-      })
+      }
+      state.servers.set(serverId, submap)
     }
     else {
-      for (let i = 0; i < file.servers[index].quotes.length; i++) {
-        if (JSON.stringify(file.servers[index].quotes[i]) ==
-            JSON.stringify({'author' : author, 'quote' : quote})) {
-          console.log('duplicate quote')
-          return
-        }
-      }
-
-      file.servers[index].quotes.push({'author' : author, 'quote' : quote})
+      if (submap.quotes.some(x => x.author == author && x.quote == quote)) {
+        console.log(`Duplicate quote by ${author}: ${quote}`)
+      } else {
+        submap.quotes.push({'author' : author, 'quote' : quote})
+      }      
     }
-    await this.writeFile(JSON.stringify(file))
-    /*
-fs.writeFile('./quotes.json', JSON.stringify(file), function(err) {
-if (err) {
-console.log(err)
-} else {
-console.log('file written')
-}
-})*/
+    await this.writeFile(JSON.stringify(state))
   }
 
   async deleteQuote(serverId: string, author: string, quote: string) {
-    let index: number = this.serverIndex(serverId)
-    if (index == -1) {
+    let submap = state.servers.get(serverId)
+    if (submap == undefined) {
       console.log('no quotes from this server')
       return
     }
-    for (let i = file.servers[index].quotes.length - 1; i >= 0; i--) {
-      if (JSON.stringify(
-              file.servers[index].quotes[i] ==
-              JSON.stringify({'author' : author, 'quote' : quote}))) {
-        console.log(JSON.stringify(file))
-        file.servers[index].quotes.splice(i, 1);
+    for (let i = submap.quotes.length - 1; i >= 0; i--) {
+      if (submap.quotes[i].author == author && submap.quotes[i].quote == quote) {
+        console.log(JSON.stringify(state))
+        submap.quotes.splice(i, 1);
         console
-            .log(JSON.stringify(file))
+            .log(JSON.stringify(state))
 
-                await this.writeFile(JSON.stringify(file))
-        /*
-fs.writeFile('./quotes.json', JSON.stringify(file), function(err) {
-if (err) {
-console.log(err)
-} else {
-console.log('quote deleted')
-}
-})*/
+        await this.writeFile(JSON.stringify(state))
       }
     }
   }
 
   getServerQuotes(serverId: string): any {
-    let index = this.serverIndex(serverId)
-    if (index == -1) {
-      return []
-    }
-    return file.servers[index].quotes
+    return (state.servers.get(serverId) ?? { 'quotes' : [] }).quotes
   }
 
   getAuthorQuotes(serverId: string, author: string): any {
