@@ -11,7 +11,7 @@
     "typescript": "^4.6.3"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node ./target/test.js"
   },
   "author": "",
   "license": "ISC"
