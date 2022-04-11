@@ -2,5 +2,18 @@
   "dependencies": {
     "discord.js": "^13.6.0",
     "fs.js": "^0.0.1"
-  }
+  },
+  "name": "dotic",
+  "description": "A Discord bot, that manages your quotes",
+  "version": "1.0.0",
+  "main": "main.ts",
+  "devDependencies": {
+    "typescript": "^4.6.3"
+  },
+  "scripts": {
+    "test": "node ./target/test.js",
+    "watch": "tsc -w"
+  },
+  "author": "",
+  "license": "ISC"
 }
