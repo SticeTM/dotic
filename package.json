@@ -11,7 +11,8 @@
     "typescript": "^4.6.3"
   },
   "scripts": {
-    "test": "node ./target/test.js"
+    "test": "node ./target/test.js",
+    "watch": "tsc -w"
   },
   "author": "",
   "license": "ISC"
