@@ -8,6 +8,7 @@
   "description": "A Discord bot, that manages your quotes",
   "version": "1.0.0",
   "main": "main.ts",
+  "type": "module",
   "devDependencies": {
     "typescript": "^4.6.3"
   },

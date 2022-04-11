@@ -3,6 +3,7 @@
 		"outDir": "target",
 		"rootDir": "src",
     "module": "esnext",
-    "target": "esnext"
+    "target": "esnext",
+    "moduleResolution": "node"
 	}
 }

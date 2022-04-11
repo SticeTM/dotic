@@ -1,4 +1,4 @@
-import {quoteHandler} from './quoteHandler'
+import {quoteHandler} from './quoteHandler.js'
 
 let quoter = new quoteHandler()
 
