@@ -4,6 +4,22 @@ let fileLocked: boolean = false
 
 export class quoteHandler {
 
+  init() {
+    return new Promise(
+        (accept, reject) => {fs.readFile('./quotes.json', (err, data) => {
+          if (err) {
+            reject()
+            return console.log(err)
+          } else {
+            console.log('file opened')
+            if (data.length == 0) {
+              file = { "servers" : [] }
+            }
+            else {file = JSON.parse(data.toString())} accept(data)
+          }
+        })})
+  }
+
   writeFile(fileAsString: string) {
     console.log('trying to write')
     do {
@@ -23,22 +39,6 @@ export class quoteHandler {
       }, 500)
     }
     while (fileLocked)
-  }
-
-  init() {
-    return new Promise(
-        (accept, reject) => {fs.readFile('./quotes.json', (err, data) => {
-          if (err) {
-            reject()
-            return console.log(err)
-          } else {
-            console.log('file opened')
-            if (data.length == 0) {
-              file = { "servers" : [] }
-            }
-            else {file = JSON.parse(data.toString())} accept(data)
-          }
-        })})
   }
 
   serverIndex(serverId: string): number {
@@ -73,14 +73,6 @@ export class quoteHandler {
       file.servers[index].quotes.push({'author' : author, 'quote' : quote})
     }
     this.writeFile(JSON.stringify(file))
-    /*
-fs.writeFile('./quotes.json', JSON.stringify(file), function(err) {
-if (err) {
-console.log(err)
-} else {
-console.log('file written')
-}
-})*/
   }
 
   deleteQuote(serverId: string, author: string, quote: string) {
@@ -99,14 +91,6 @@ console.log('file written')
             .log(JSON.stringify(file))
 
                 this.writeFile(JSON.stringify(file))
-        /*
-fs.writeFile('./quotes.json', JSON.stringify(file), function(err) {
-if (err) {
-console.log(err)
-} else {
-console.log('quote deleted')
-}
-})*/
       }
     }
   }
