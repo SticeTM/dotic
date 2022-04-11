@@ -20,25 +20,30 @@ export class quoteHandler {
         })})
   }
 
-  writeFile(fileAsString: string) {
-    console.log('trying to write')
-    do {
-      setTimeout(() => {
-        if (!fileLocked) {
-          fileLocked = true
-          fs.writeFile('./quotes.json', (fileAsString), function(err) {
-            if (err) {
-              console.log(err)
-              fileLocked = false
-            } else {
-              console.log('file written')
-              fileLocked = false
-            }
-          })
-        }
-      }, 500)
-    }
-    while (fileLocked)
+  /*
+    writeFile(fileAsString: string) {
+      console.log('trying to write')
+      do {
+        setTimeout(() => {
+          if (!fileLocked) {
+            fileLocked = true
+            fs.writeFile('./quotes.json', (fileAsString), function(err) {
+              if (err) {
+                console.log(err)
+                fileLocked = false
+              } else {
+                console.log('file written')
+                fileLocked = false
+              }
+            })
+          }
+        }, 500)
+      }
+      while (fileLocked)
+    }*/
+
+  async writeFile(fileAsString: string) {
+    await fs.promises.writeFile('./quotes.json', fileAsString)
   }
 
   serverIndex(serverId: string): number {
@@ -85,12 +90,12 @@ export class quoteHandler {
       if (JSON.stringify(
               file.servers[index].quotes[i] ==
               JSON.stringify({'author' : author, 'quote' : quote}))) {
-        console.log(JSON.stringify(file))
+        console.log('quote to be deleted foun:')
+        console.log(file.servers[index].quotes[i])
         file.servers[index].quotes.splice(i, 1);
-        console
-            .log(JSON.stringify(file))
-
-                this.writeFile(JSON.stringify(file))
+        console.log('resultat nach löschung')
+        console.log(JSON.stringify(file)) this.writeFile(JSON.stringify(file))
+        break
       }
     }
   }
