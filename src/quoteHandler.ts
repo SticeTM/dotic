@@ -42,7 +42,7 @@ export class quoteHandler {
 
   serverIndex(serverId: string): number {
     for (let i = 0; i < file.servers.length; i++) {
-      if (file.servers[i].serverId == serverId) {
+      if (decrypt(file.servers[i].serverId, serverId) == serverId) {
         return i;
       }
     }
@@ -56,23 +56,31 @@ export class quoteHandler {
     let index: number = this.serverIndex(serverId);
     if (index == -1) {
       file.servers.push({
-        "serverId": serverId,
-        "quotes": [{ "author": author, "quote": quote }],
+        "serverId": encrypt(serverId, serverId),
+        "quotes": [encrypt(
+          JSON.stringify({ "author": author, "quote": quote }),
+          serverId,
+        )],
       });
     } else {
       for (let i = 0; i < file.servers[index].quotes.length; i++) {
-        if (
-          JSON.stringify(file.servers[index].quotes[i]) ==
-            JSON.stringify({ "author": author, "quote": quote })
-        ) {
+        let encryptedQuote = JSON.parse(
+          decrypt(file.servers[index].quotes[i], serverId),
+        );
+        if (encryptedQuote.author == author && encryptedQuote.quote == quote) {
           console.log("duplicate quote");
           return;
         }
       }
 
-      file.servers[index].quotes.push({ "author": author, "quote": quote });
+      file.servers[index].quotes.push(
+        encrypt(
+          JSON.stringify({ "author": author, "quote": quote }),
+          serverId,
+        ),
+      );
+      this.writeFile(JSON.stringify(file));
     }
-    this.writeFile(JSON.stringify(file));
   }
 
   deleteQuote(serverId: string, author: string, quote: string) {

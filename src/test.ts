@@ -33,4 +33,11 @@ let tmp = CryptoJS.AES.encrypt(test, "hallo").toString();
 console.log(CryptoJS.AES.decrypt(tmp, "hallo").toString(CryptoJS.enc.Utf8));
 console.log(CryptoJS.AES.decrypt(tmp, "hallo").toString(CryptoJS.enc.Utf8));
 console.log(CryptoJS.AES.decrypt(tmp, "hallo").toString(CryptoJS.enc.Utf8));
-console.log(CryptoJS.AES.decrypt(tmp, "hallo").toString(CryptoJS.enc.Utf8));
+
+console.log(
+  CryptoJS.AES.decrypt(
+    "U2FsdGVkX1/dUDDOSpr/hgxTlzlj8JPc2+7T16q7a4Q6e9a/4II5NDWqyxVLWGPdV9QMw3am344WQAUBju0Oh+sH5AGD9q2QPUQwk7ZUr1heZzNAfjRz3rcuecnIXjT6",
+    "103",
+  )
+    .toString(CryptoJS.enc.Utf8),
+);
