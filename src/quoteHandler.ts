@@ -1,158 +1,143 @@
-import * as fs from 'fs'
-let file: any
-let fileLocked: boolean = false
+import * as fs from "fs";
+let file: any;
 
 export class quoteHandler {
-
   init() {
     return new Promise(
-        (accept, reject) => {fs.readFile('./quotes.json', (err, data) => {
+      (accept, reject) => {
+        fs.readFile("./quotes.json", (err, data) => {
           if (err) {
-            reject()
-            return console.log(err)
+            reject();
+            return console.log(err);
           } else {
-            console.log('file opened')
+            console.log("file opened");
             if (data.length == 0) {
-              file = { "servers" : [] }
-            }
-            else {file = JSON.parse(data.toString())} accept(data)
+              file = { "servers": [] };
+            } else file = JSON.parse(data.toString());
+            accept(data);
           }
-        })})
+        });
+      },
+    );
   }
 
-  /*
-    writeFile(fileAsString: string) {
-      console.log('trying to write')
-      do {
-        setTimeout(() => {
-          if (!fileLocked) {
-            fileLocked = true
-            fs.writeFile('./quotes.json', (fileAsString), function(err) {
-              if (err) {
-                console.log(err)
-                fileLocked = false
-              } else {
-                console.log('file written')
-                fileLocked = false
-              }
-            })
-          }
-        }, 500)
-      }
-      while (fileLocked)
-    }*/
-
   async writeFile(fileAsString: string) {
-    await fs.promises.writeFile('./quotes.json', fileAsString)
+    await fs.promises.writeFile("./quotes.json", fileAsString);
+    await fs.promises.truncate("./quotes.json", fileAsString.length);
   }
 
   serverIndex(serverId: string): number {
     for (let i = 0; i < file.servers.length; i++) {
       if (file.servers[i].serverId == serverId) {
-        return i
+        return i;
       }
     }
-    return -1
+    return -1;
   }
 
   addQuote(serverId: string, author: string, quote: string): void {
     if (file == undefined) {
-      file = { "servers" : [] }
+      file = { "servers": [] };
     }
-    let index: number = this.serverIndex(serverId)
+    let index: number = this.serverIndex(serverId);
     if (index == -1) {
       file.servers.push({
-        'serverId' : serverId,
-        'quotes' : [ {'author' : author, 'quote' : quote} ]
-      })
-    }
-    else {
+        "serverId": serverId,
+        "quotes": [{ "author": author, "quote": quote }],
+      });
+    } else {
       for (let i = 0; i < file.servers[index].quotes.length; i++) {
-        if (JSON.stringify(file.servers[index].quotes[i]) ==
-            JSON.stringify({'author' : author, 'quote' : quote})) {
-          console.log('duplicate quote')
-          return
+        if (
+          JSON.stringify(file.servers[index].quotes[i]) ==
+            JSON.stringify({ "author": author, "quote": quote })
+        ) {
+          console.log("duplicate quote");
+          return;
         }
       }
 
-      file.servers[index].quotes.push({'author' : author, 'quote' : quote})
+      file.servers[index].quotes.push({ "author": author, "quote": quote });
     }
-    this.writeFile(JSON.stringify(file))
+    this.writeFile(JSON.stringify(file));
   }
 
   deleteQuote(serverId: string, author: string, quote: string) {
-    let index: number = this.serverIndex(serverId)
+    let index: number = this.serverIndex(serverId);
     if (index == -1) {
-      console.log('no quotes from this server')
-      return
+      console.log("no quotes from this server");
+      return;
     }
     for (let i = file.servers[index].quotes.length - 1; i >= 0; i--) {
-      if (JSON.stringify(
-              file.servers[index].quotes[i] ==
-              JSON.stringify({'author' : author, 'quote' : quote}))) {
-        console.log('quote to be deleted foun:')
-        console.log(file.servers[index].quotes[i])
+      if (
+        JSON.stringify(
+          file.servers[index].quotes[i] ==
+            JSON.stringify({ "author": author, "quote": quote }),
+        )
+      ) {
+        console.log("quote to be deleted foun:");
+        console.log(file.servers[index].quotes[i]);
         file.servers[index].quotes.splice(i, 1);
-        console.log('resultat nach löschung')
-        console.log(JSON.stringify(file)) this.writeFile(JSON.stringify(file))
-        break
+        console.log("resultat nach löschung");
+        console.log(JSON.stringify(file));
+        this.writeFile(JSON.stringify(file));
+        break;
       }
     }
   }
 
   getServerQuotes(serverId: string): any {
-    let index = this.serverIndex(serverId)
+    let index = this.serverIndex(serverId);
     if (index == -1) {
-      return []
+      return [];
     }
-    return file.servers[index].quotes
+    return file.servers[index].quotes;
   }
 
   getAuthorQuotes(serverId: string, author: string): any {
-    let serverQuotes = this.getServerQuotes(serverId)
+    let serverQuotes = this.getServerQuotes(serverId);
     if (serverQuotes.length == 0) {
-      return []
+      return [];
     }
 
     for (let i = serverQuotes.length - 1; i >= 0; i--) {
       if (serverQuotes[i].author != author) {
-        serverQuotes.splice(i, 1)
+        serverQuotes.splice(i, 1);
       }
     }
-    return serverQuotes
+    return serverQuotes;
   }
 
   getRandomQuote(serverId: string): any {
-    let serverQuotes = this.getServerQuotes(serverId)
+    let serverQuotes = this.getServerQuotes(serverId);
     if (serverQuotes.length <= 0) {
-      return null
+      return null;
     }
-    return serverQuotes[Math.floor(Math.random() * serverQuotes.length)]
+    return serverQuotes[Math.floor(Math.random() * serverQuotes.length)];
   }
 
   getRandomByAuthor(serverId: string, author: string): any {
-    let serverQuotes = this.getServerQuotes(serverId)
+    let serverQuotes = this.getServerQuotes(serverId);
     if (serverQuotes.length <= 0) {
-      return null
+      return null;
     }
     for (let i = serverQuotes.length - 1; i >= 0; i--) {
       if (serverQuotes[i].author != author) {
-        serverQuotes.splice(i, 1)
+        serverQuotes.splice(i, 1);
       }
-      return serverQuotes
+      return serverQuotes;
     }
   }
 
   getQuotesBySearch(serverId: string, search: string) {
-    let serverQuotes = this.getServerQuotes(serverId)
+    let serverQuotes = this.getServerQuotes(serverId);
     if (serverQuotes.length <= 0) {
-      return null
+      return null;
     }
     for (let i = serverQuotes.length - 1; i >= 0; i--) {
       if (!serverQuotes[i].includes(search)) {
-        serverQuotes.splice(i, 1)
+        serverQuotes.splice(i, 1);
       }
-      return serverQuotes
+      return serverQuotes;
     }
   }
 }
