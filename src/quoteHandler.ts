@@ -1,5 +1,19 @@
 import * as fs from "fs";
+import * as CryptoJs from "crypto-js";
+
 let file: any;
+
+let getRandom = (array: any[]) => {
+  return array[Math.floor(array.length * Math.random())];
+};
+
+let encrypt = (message: string, password: string) => {
+  return CryptoJs.AES.encrypt(message, password).toString();
+};
+
+let decrypt = (encryption: string, password: string) => {
+  return CryptoJs.AES.decrypt(encryption, password).toString(CryptoJs.enc.Utf8);
+};
 
 export class quoteHandler {
   init() {
@@ -74,11 +88,7 @@ export class quoteHandler {
             JSON.stringify({ "author": author, "quote": quote }),
         )
       ) {
-        console.log("quote to be deleted foun:");
-        console.log(file.servers[index].quotes[i]);
         file.servers[index].quotes.splice(i, 1);
-        console.log("resultat nach löschung");
-        console.log(JSON.stringify(file));
         this.writeFile(JSON.stringify(file));
         break;
       }
@@ -86,58 +96,26 @@ export class quoteHandler {
   }
 
   getServerQuotes(serverId: string): any {
-    let index = this.serverIndex(serverId);
-    if (index == -1) {
-      return [];
-    }
-    return file.servers[index].quotes;
+    return file.servers[this.serverIndex(serverId)].quotes ?? [];
   }
 
   getAuthorQuotes(serverId: string, author: string): any {
-    let serverQuotes = this.getServerQuotes(serverId);
-    if (serverQuotes.length == 0) {
-      return [];
-    }
-
-    for (let i = serverQuotes.length - 1; i >= 0; i--) {
-      if (serverQuotes[i].author != author) {
-        serverQuotes.splice(i, 1);
-      }
-    }
-    return serverQuotes;
+    return this.getServerQuotes(serverId).filter((quote) =>
+      quote.author == author
+    );
   }
 
-  getRandomQuote(serverId: string): any {
-    let serverQuotes = this.getServerQuotes(serverId);
-    if (serverQuotes.length <= 0) {
-      return null;
-    }
-    return serverQuotes[Math.floor(Math.random() * serverQuotes.length)];
+  getRandomServerQuote(serverId: string): any {
+    return getRandom(this.getServerQuotes(serverId));
   }
 
-  getRandomByAuthor(serverId: string, author: string): any {
-    let serverQuotes = this.getServerQuotes(serverId);
-    if (serverQuotes.length <= 0) {
-      return null;
-    }
-    for (let i = serverQuotes.length - 1; i >= 0; i--) {
-      if (serverQuotes[i].author != author) {
-        serverQuotes.splice(i, 1);
-      }
-      return serverQuotes;
-    }
+  getRandomAuthorQuote(serverId: string, author: string) {
+    return getRandom(this.getAuthorQuotes(serverId, author));
   }
 
   getQuotesBySearch(serverId: string, search: string) {
-    let serverQuotes = this.getServerQuotes(serverId);
-    if (serverQuotes.length <= 0) {
-      return null;
-    }
-    for (let i = serverQuotes.length - 1; i >= 0; i--) {
-      if (!serverQuotes[i].includes(search)) {
-        serverQuotes.splice(i, 1);
-      }
-      return serverQuotes;
-    }
+    return this.getServerQuotes(serverId).filter((quote) =>
+      quote.includes(search)
+    );
   }
 }
