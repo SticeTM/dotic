@@ -1,6 +1,6 @@
 {
-	"compilerOptions": {
-		"outDir": "target",
-		"rootDir": "src"
-	}
+  "compilerOptions": {
+    "outDir": "target",
+    "rootDir": "src"
+  }
 }

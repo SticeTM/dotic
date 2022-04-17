@@ -1,7 +1,17 @@
 import * as fs from "fs";
 import * as CryptoJs from "crypto-js";
 
-let file: any;
+type Quote = {
+  author: string;
+  quote: string;
+};
+type Server = {
+  serverId: string;
+  quotes: Quote[];
+};
+type File = {
+  servers: Server[];
+};
 
 let getRandom = (array: any[]) => {
   return array[Math.floor(array.length * Math.random())];
@@ -14,6 +24,8 @@ let encrypt = (message: string, password: string) => {
 let decrypt = (encryption: string, password: string) => {
   return CryptoJs.AES.decrypt(encryption, password).toString(CryptoJs.enc.Utf8);
 };
+
+let file: File;
 
 export class quoteHandler {
   init() {
@@ -36,8 +48,9 @@ export class quoteHandler {
   }
 
   async writeFile(fileAsString: string) {
-    await fs.promises.writeFile("./quotes.json", fileAsString);
-    await fs.promises.truncate("./quotes.json", fileAsString.length);
+    await fs.promises.writeFile("./quotes.json", fileAsString).then(() =>
+      fs.truncate("./quotes.json", fileAsString.length, (err) => {})
+    );
   }
 
   serverIndex(serverId: string): number {
@@ -65,7 +78,7 @@ export class quoteHandler {
     } else {
       for (let i = 0; i < file.servers[index].quotes.length; i++) {
         let encryptedQuote = JSON.parse(
-          decrypt(file.servers[index].quotes[i], serverId),
+          decrypt(file.servers[index].quotes[i].toString(), serverId),
         );
         if (encryptedQuote.author == author && encryptedQuote.quote == quote) {
           console.log("duplicate quote");
@@ -91,29 +104,29 @@ export class quoteHandler {
     }
     for (let i = file.servers[index].quotes.length - 1; i >= 0; i--) {
       if (
-        JSON.stringify(
-          file.servers[index].quotes[i] ==
-            JSON.stringify({ "author": author, "quote": quote }),
-        )
+        decrypt(file.servers[index].quotes[i].toString(), serverId) ==
+          JSON.stringify({ "author": author, "quote": quote })
       ) {
         file.servers[index].quotes.splice(i, 1);
         this.writeFile(JSON.stringify(file));
-        break;
+        return;
       }
     }
+    console.log("trying to delete nonexistant quote");
   }
 
-  getServerQuotes(serverId: string): any {
-    return file.servers[this.serverIndex(serverId)].quotes ?? [];
+  getServerQuotes(serverId: string): Quote[] {
+    return file.servers[this.serverIndex(serverId)].quotes
+      .map((quote) => decrypt(quote.toString(), serverId))
+      .map((quote) => JSON.parse(quote.toString())) ?? [];
   }
 
-  getAuthorQuotes(serverId: string, author: string): any {
-    return this.getServerQuotes(serverId).filter((quote) =>
-      quote.author == author
-    );
+  getAuthorQuotes(serverId: string, author: string): Quote[] {
+    return this.getServerQuotes(serverId)
+      .filter((quote) => quote.author == author);
   }
 
-  getRandomServerQuote(serverId: string): any {
+  getRandomServerQuote(serverId: string): Quote {
     return getRandom(this.getServerQuotes(serverId));
   }
 
@@ -122,8 +135,11 @@ export class quoteHandler {
   }
 
   getQuotesBySearch(serverId: string, search: string) {
-    return this.getServerQuotes(serverId).filter((quote) =>
-      quote.includes(search)
-    );
+    return this.getServerQuotes(serverId)
+      .filter((quote) =>
+        quote.quote.split(" ")
+          .map((word) => word.toLowerCase())
+          .find((word) => word == search.toLowerCase().trim()) != undefined
+      );
   }
 }
