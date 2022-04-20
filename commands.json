@@ -1,0 +1,85 @@
+
+[
+    {
+      "name": "add_quote",
+      "description": "add a quote",
+      "options": [
+        {
+          "name": "quote",
+          "description": "paste your quote here",
+          "required": true,
+          "type": 3
+        },
+        {
+          "name": "author",
+          "description": "who said or wrote this quote",
+          "required": true,
+          "type": 3
+        }
+      ]
+    },
+    {
+      "name": "delete_quote",
+      "description": "Paste the whole quote and the author you wish to delete",
+      "options": [
+        {
+          "name": "quote",
+          "description": "paste the quote to be deleted here",
+          "required": true,
+          "type": 3
+        },
+        {
+          "name": "author",
+          "description": "who's quote are you deleting?",
+          "required": true,
+          "type": 3
+        }
+      ]
+    },
+		{
+      "name": "list_all",
+      "description": "list all quotes"
+    },
+		{
+			"name": "list_all_from",
+			"description": "list all quotes from",
+			"options": [
+				{
+					"name": "author",
+					"description": "who's quotes would you like to see?",
+					"required": true,
+					"type": 3
+				}
+			]
+		},
+		{
+      "name": "random_quote",
+      "description": "get a random quote"
+    },
+    
+    {
+      "name": "random_quote_from",
+      "description": "get a random quote from the wished author",
+      "options": [
+        {
+          "name": "author",
+          "description": "author",
+          "required": true,
+          "type": 3
+        }
+      ]
+    },
+    {
+      "name": "search_quote",
+      "description": "search for a quote",
+			"options": [
+				{
+					"name": "search",
+					"description": "what to look for",
+					"required": true,
+					"type": 3
+				}
+			]
+    }
+  ]
+

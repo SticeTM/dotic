@@ -55,6 +55,9 @@ export class quoteHandler {
 
   serverIndex(serverId: string): number {
     for (let i = 0; i < file.servers.length; i++) {
+			console.log("erstes" + decrypt(file.servers[i].serverId, serverId))
+			console.log(CryptoJs.AES.decrypt(file.servers[i].serverId, serverId).toString(CryptoJs.enc.Utf8))
+			console.log("zweites" + serverId)
       if (decrypt(file.servers[i].serverId, serverId) == serverId) {
         return i;
       }
@@ -116,14 +119,14 @@ export class quoteHandler {
   }
 
   getServerQuotes(serverId: string): Quote[] {
-    return file.servers[this.serverIndex(serverId)].quotes
-      .map((quote) => decrypt(quote.toString(), serverId))
-      .map((quote) => JSON.parse(quote.toString())) ?? [];
+    return file.servers[this.serverIndex(serverId)]?.quotes
+      .map((quoteObject) => decrypt(quoteObject.toString(), serverId))
+      .map((quoteObject) => JSON.parse(quoteObject.toString())) ?? [];
   }
 
   getAuthorQuotes(serverId: string, author: string): Quote[] {
     return this.getServerQuotes(serverId)
-      .filter((quote) => quote.author == author);
+      .filter((quoteObject) => quoteObject.author == author);
   }
 
   getRandomServerQuote(serverId: string): Quote {
@@ -136,8 +139,8 @@ export class quoteHandler {
 
   getQuotesBySearch(serverId: string, search: string) {
     return this.getServerQuotes(serverId)
-      .filter((quote) =>
-        quote.quote.split(" ")
+      .filter((quoteObject) =>
+        quoteObject.quote.split(" ")
           .map((word) => word.toLowerCase())
           .find((word) => word == search.toLowerCase().trim()) != undefined
       );

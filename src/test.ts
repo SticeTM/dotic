@@ -10,20 +10,15 @@ async function func() {
   quoter.addQuote("103", "hans", "hans ist wirklich mein name");
   quoter.addQuote("103", "hans", "jetzt bin ich trauriger hans");
   */
-  quoter.deleteQuote("103", "hans", "hans ist mein name");
   console.log(quoter.getServerQuotes("103"));
+	let obj = [{
+		quotes:[
+			{
+				quote:'hallo',
+				author:'peter'
+			}
+		]
+	}]
 }
 
 func();
-//func2()
-import * as fs from "fs";
-
-function func2() {
-  let data = "";
-
-  for (let i = 0; i < 1000; i++) {
-    data += i;
-  }
-
-  fs.writeFile("./quotes.json", data, () => {});
-}

@@ -1,31 +1,98 @@
-import { Client, Intents } from "discord.js";
-const { token } = require("./config.json");
+import { Client, Constants, Intents } from "discord.js";
+const { token } = require("./../config.json");
+import { quoteHandler } from "./quoteHandler";
 
-const client = new Client(
-  { intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] },
-);
+let quoter = new quoteHandler();
 
-client.once("message", (msg) => {
-  msg.reply(msg.author.toString());
-});
+async function main() {
+  await quoter.init();
 
-client.once("ready", () => {
-  console.log("client is ready");
+  const client = new Client(
+    { intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] },
+  );
+  client.once("messageCreate", (msg) => {
+    // msg.reply(msg.author.toString());
+  });
 
-  var commands;
+  client.once("ready", () => {
+    console.log("client is ready");
 
-  const guildId = "960870027379241070";
-  const guild = client.guilds.cache.get(guildId);
+    var commandCollection;
 
-  if (guild) {
-    commands = guild.commands;
-  } else commands = client.application?.commands;
+    const guildId = "960870027379241070";
+    const guild = client.guilds.cache.get(guildId);
 
-  commands.fetch()
-    .then((command) => console.log(command));
+    if (guild) {
+      commandCollection = guild.commands;
+    } else {
+      commandCollection = client.application?.commands;
+    }
 
-  commands.delete("961013157453779004");
-  commands.delete("961729009178263612");
-});
+    let commands = require("./../commands.json");
 
-client.login(token);
+    commands.forEach((command) => {
+      commandCollection?.create(command);
+    });
+
+    //delete all commands from server
+    /*commandCollection.fetch().then((command) => {
+      command.forEach((key, value) => {
+        commandCollection.delete(key.id);
+      });
+    }).then(console.log('deleted all commands'));
+		*/
+
+    client.on("interactionCreate", async (interaction) => {
+      if (!interaction.isCommand()) {
+        return;
+      }
+
+      const { commandName, options } = interaction;
+
+      switch (commandName) {
+        case "add_quote":
+          {
+            quoter.addQuote(
+              interaction.guild.id,
+              options.getString("author", true),
+              options.getString("quote", true),
+            );
+          }
+          break;
+        case "delete_quote":
+          {
+          }
+          break;
+        case "list_all":
+          {
+          }
+          break;
+        case "list_all_from":
+          {
+          }
+          break;
+        case "random_quote":
+          {
+            let quote = quoter.getRandomServerQuote(
+              interaction.guild.id.toString(),
+            );
+            interaction.reply({
+              content: `> ${quote?.quote} \n-${quote?.author}`,
+            });
+          }
+          break;
+        case "random_quote_from":
+          {
+          }
+          break;
+        case "search_quote":
+          {
+          }
+          break;
+      }
+    });
+  });
+  client.login(token);
+}
+
+main();

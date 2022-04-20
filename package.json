@@ -12,6 +12,7 @@
     "typescript": "^4.6.3"
   },
   "scripts": {
+    "mainjs": "node ./target/main.js",
     "test": "node ./target/test.js",
     "watch": "tsc -w"
   },
