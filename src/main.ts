@@ -1,8 +1,8 @@
 import { Client, Constants, Intents } from "discord.js";
 const { token } = require("./../config.json");
-import { quoteHandler } from "./quoteHandler";
+import { Feedback, QuoteHandler } from "./quoteHandler";
 
-let quoter = new quoteHandler();
+let quoter = new QuoteHandler();
 
 async function main() {
   await quoter.init();
@@ -10,9 +10,6 @@ async function main() {
   const client = new Client(
     { intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] },
   );
-  client.once("messageCreate", (msg) => {
-    // msg.reply(msg.author.toString());
-  });
 
   client.once("ready", () => {
     console.log("client is ready");
@@ -52,23 +49,89 @@ async function main() {
       switch (commandName) {
         case "add_quote":
           {
-            quoter.addQuote(
+            let status: Feedback = quoter.addQuote(
               interaction.guild.id,
               options.getString("author", true),
               options.getString("quote", true),
             );
+            if (status == Feedback.Success) {
+              interaction.reply({
+                content: "quote added successfully",
+                ephemeral: true,
+              });
+            } else if (status == Feedback.QuoteAlreadyAdded) {
+              interaction.reply({
+                content: "quote was allready added",
+                ephemeral: true,
+              });
+            }
           }
           break;
         case "delete_quote":
           {
+            let status: Feedback = quoter.deleteQuote(
+              interaction.guild.id,
+              options.getString("author", true),
+              options.getString("quote", true),
+            );
+            if (status == Feedback.Success) {
+              interaction.reply({
+                content: "quote deleted successfully",
+                ephemeral: true,
+              });
+            } else if (status == Feedback.ServerNotFound) {
+              interaction.reply({
+                content: "this server has no quotes yet",
+                ephemeral: true,
+              });
+            } else if (status == Feedback.QuoteNotFound) {
+              interaction.reply({
+                content: "quote not found",
+                ephemeral: true,
+              });
+            }
           }
           break;
         case "list_all":
           {
+            let messages: String[] = quoter.getStringsFromQuotes(
+              quoter.getServerQuotes(interaction.guild.id),
+            );
+
+            if (messages.length == 0) {
+              interaction.reply({
+                content: "no quotes added so far",
+                ephemeral: true,
+              });
+            } else {
+              await interaction.reply(messages[0].toString());
+              messages.splice(0, 1);
+              messages.forEach((message) => {
+                interaction.followUp(message.toString());
+              });
+            }
           }
           break;
         case "list_all_from":
           {
+            let messages: String[] = quoter.getStringsFromQuotes(
+              quoter.getAuthorQuotes(
+                interaction.guild.id,
+                interaction.options.getString("author", true),
+              ),
+            );
+            if (messages.length == 0) {
+              interaction.reply({
+                content: "no quotes added so far",
+                ephemeral: true,
+              });
+            } else {
+              await interaction.reply(messages[0].toString());
+              messages.splice(0, 1);
+              messages.forEach((message) => {
+                interaction.followUp(message.toString());
+              });
+            }
           }
           break;
         case "random_quote":
@@ -76,17 +139,57 @@ async function main() {
             let quote = quoter.getRandomServerQuote(
               interaction.guild.id.toString(),
             );
-            interaction.reply({
-              content: `> ${quote?.quote} \n-${quote?.author}`,
-            });
+            if (quote != undefined) {
+              interaction.reply({
+                content: `> ${quote?.quote} \n-${quote?.author}`,
+              });
+            } else {
+              interaction.reply({
+                content: "no quotes were added so far",
+                ephemeral: true,
+              });
+            }
           }
           break;
         case "random_quote_from":
           {
+            let quote = quoter.getRandomAuthorQuote(
+              interaction.guild.id.toString(),
+              interaction.options.getString("author", true),
+            );
+            if (quote != undefined) {
+              interaction.reply({
+                content: `> ${quote?.quote} \n-${quote?.author}`,
+              });
+            } else {
+              interaction.reply({
+                content: "no quotes from this author found",
+                ephemeral: true,
+              });
+            }
           }
           break;
         case "search_quote":
           {
+            let messages: String[] = quoter.getStringsFromQuotes(
+              quoter.getQuotesBySearch(
+                interaction.guild.id,
+                interaction.options.getString("search", true),
+              ),
+            );
+
+            if (messages.length == 0) {
+              interaction.reply({
+                content: "no quotes added so far",
+                ephemeral: true,
+              });
+            } else {
+              await interaction.reply(messages[0].toString());
+              messages.splice(0, 1);
+              messages.forEach((message) => {
+                interaction.followUp(message.toString());
+              });
+            }
           }
           break;
       }

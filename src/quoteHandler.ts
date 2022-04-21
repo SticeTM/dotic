@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as CryptoJs from "crypto-js";
-
-type Quote = {
+let MAXIMUM_MESSAGE_SIZE = 2000;
+export type Quote = {
   author: string;
   quote: string;
 };
@@ -27,7 +27,14 @@ let decrypt = (encryption: string, password: string) => {
 
 let file: File;
 
-export class quoteHandler {
+export enum Feedback {
+  QuoteAlreadyAdded,
+  Success,
+  ServerNotFound,
+  QuoteNotFound,
+}
+
+export class QuoteHandler {
   init() {
     return new Promise(
       (accept, reject) => {
@@ -49,15 +56,14 @@ export class quoteHandler {
 
   async writeFile(fileAsString: string) {
     await fs.promises.writeFile("./quotes.json", fileAsString).then(() =>
-      fs.truncate("./quotes.json", fileAsString.length, (err) => {})
+      fs.truncate("./quotes.json", fileAsString.length, (err) => {
+        console.log(err);
+      })
     );
   }
 
   serverIndex(serverId: string): number {
     for (let i = 0; i < file.servers.length; i++) {
-			console.log("erstes" + decrypt(file.servers[i].serverId, serverId))
-			console.log(CryptoJs.AES.decrypt(file.servers[i].serverId, serverId).toString(CryptoJs.enc.Utf8))
-			console.log("zweites" + serverId)
       if (decrypt(file.servers[i].serverId, serverId) == serverId) {
         return i;
       }
@@ -65,7 +71,24 @@ export class quoteHandler {
     return -1;
   }
 
-  addQuote(serverId: string, author: string, quote: string): void {
+  getStringsFromQuotes(quotes: Quote[]): String[] {
+    let result: String[] = [];
+    quotes.forEach((quote) => {
+      if (
+        result.length == 0 ||
+        result[result.length - 1].length +
+              `\n\n> ${quote?.quote} \n-${quote?.author}`.length >=
+          MAXIMUM_MESSAGE_SIZE
+      ) {
+        result.push(`> ${quote?.quote} \n-${quote?.author}`);
+      } else {
+        result[result.length - 1] += `\n\n> ${quote?.quote} \n-${quote?.author}`;
+      }
+    });
+    return result;
+  }
+
+  addQuote(serverId: string, author: string, quote: string): Feedback {
     if (file == undefined) {
       file = { "servers": [] };
     }
@@ -78,14 +101,14 @@ export class quoteHandler {
           serverId,
         )],
       });
+      return Feedback.Success;
     } else {
       for (let i = 0; i < file.servers[index].quotes.length; i++) {
         let encryptedQuote = JSON.parse(
           decrypt(file.servers[index].quotes[i].toString(), serverId),
         );
         if (encryptedQuote.author == author && encryptedQuote.quote == quote) {
-          console.log("duplicate quote");
-          return;
+          return Feedback.QuoteAlreadyAdded;
         }
       }
 
@@ -96,14 +119,14 @@ export class quoteHandler {
         ),
       );
       this.writeFile(JSON.stringify(file));
+      return Feedback.Success;
     }
   }
 
-  deleteQuote(serverId: string, author: string, quote: string) {
+  deleteQuote(serverId: string, author: string, quote: string): Feedback {
     let index: number = this.serverIndex(serverId);
     if (index == -1) {
-      console.log("no quotes from this server");
-      return;
+      return Feedback.ServerNotFound;
     }
     for (let i = file.servers[index].quotes.length - 1; i >= 0; i--) {
       if (
@@ -112,10 +135,10 @@ export class quoteHandler {
       ) {
         file.servers[index].quotes.splice(i, 1);
         this.writeFile(JSON.stringify(file));
-        return;
+        return Feedback.Success;
       }
     }
-    console.log("trying to delete nonexistant quote");
+    return Feedback.QuoteNotFound;
   }
 
   getServerQuotes(serverId: string): Quote[] {
@@ -133,11 +156,11 @@ export class quoteHandler {
     return getRandom(this.getServerQuotes(serverId));
   }
 
-  getRandomAuthorQuote(serverId: string, author: string) {
+  getRandomAuthorQuote(serverId: string, author: string): Quote {
     return getRandom(this.getAuthorQuotes(serverId, author));
   }
 
-  getQuotesBySearch(serverId: string, search: string) {
+  getQuotesBySearch(serverId: string, search: string): Quote[] {
     return this.getServerQuotes(serverId)
       .filter((quoteObject) =>
         quoteObject.quote.split(" ")

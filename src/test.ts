@@ -1,6 +1,6 @@
-import { quoteHandler } from "./quoteHandler";
+import { QuoteHandler } from "./quoteHandler";
 
-let quoter = new quoteHandler();
+let quoter = new QuoteHandler();
 
 async function func() {
   await quoter.init();
